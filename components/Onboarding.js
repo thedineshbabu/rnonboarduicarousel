@@ -3,11 +3,18 @@ import { StyleSheet, Text, View, FlatList, Animated } from 'react-native';
 import OnboardingItem from './OnboardingItem';
 import Paginator from './Paginator';
 import slides from '../slides';
+import Nextbutton from './Nextbutton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const Onboarding = () => {
+const Onboarding = ({ navigation, ...props }) => {
 
-    const [index, setIndex] = useState(0);
+    const [index, setIndex] = useState(props.route.params && props.route.params.index ? props.route.params.index : 0);
+
+    // if (props.route.params) {
+    //     const { index } = props.route.params;
+    //     setIndex(index);
+    // }    
 
     const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -18,6 +25,22 @@ const Onboarding = () => {
     const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
     const slidesRef = useRef(null);
+
+    const scrollToIndex = async () => {
+        if(index < slides.length - 1) {
+            slidesRef.current.scrollToIndex({
+                index: index + 1,
+            });
+        }
+        else {
+            try {
+                AsyncStorage.setItem('@viewedOnboarding', 'true');
+                navigation.navigate('HomeScreen');
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -38,6 +61,7 @@ const Onboarding = () => {
                 />
             </View>
             <Paginator data={slides} scrollX={scrollX}/>
+            <Nextbutton scrollTo={scrollToIndex} percentage = {(index + 1) * (100 / slides.length)}/>
         </View>
     )
 }
@@ -49,5 +73,6 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: '#fff',
     }
 })
